@@ -1,9 +1,11 @@
 package main
 
-import "chat/internal/chat/service"
+import chatSvc "chat/internal/chat/service"
 
 func main() {
-	chatSvc, err := service.NewChatService()
+	chatSvc, err := chatSvc.New(chatSvc.Config{
+		Port: 9090,
+	})
 	if err != nil {
 		panic(err)
 	}
