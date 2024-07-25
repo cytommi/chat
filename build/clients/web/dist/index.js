@@ -1,38 +1,26 @@
-const url = "ws://localhost:9090/ws";
+import { authenticate } from "./auth.js";
+import { sendMessage } from "./message.js";
 
-const skt = new WebSocket(url);
-skt.onopen = (_) => {
-  console.log("Connected to websocket");
+window.onload = async () => {
+  const token = await authenticate("tommy");
+  console.log({ token });
+
+  await joinRoom("room_1", token);
+  console.log("joined!");
+  document.getElementById("send-message").disabled = false;
 };
 
-skt.onclose = (_) => {
-  console.log("Disconnected from websocket");
-};
-
-skt.onmessage = (ev) => {
-  console.log("Message received: ", ev.data);
-
-  const msgs = document.getElementById("message-list");
-  // if (msgs.children.length > 10) {
-  // msgs.removeChild(msgs.children[0]);
-  // }
-  msgs.appendChild(makeMessageListItem(ev.data));
-};
-
-function makeMessageListItem(msg) {
-  const li = document.createElement("li");
-  li.textContent = msg;
-  return li;
+async function joinRoom(roomId, token) {
+  const res = await fetch(`http://localhost:9090/room/${roomId}`, {
+    method: "POST",
+    headers: new Headers({
+      Authorization: `Bearer ${token}`,
+    }),
+  });
+  if (!res.ok) {
+    alert("failed to join room");
+  }
 }
 
-function sendMessage(ev) {
-  ev.preventDefault();
-  // get values
-  const usernameInput = document.getElementById("username-input");
-  const msgInput = document.getElementById("message-input");
-
-  const username = usernameInput.value;
-  const msg = msgInput.value;
-
-  skt.send(JSON.stringify({ username, msg }));
-}
+// Expose global functions
+globalThis.sendMessage = sendMessage;
